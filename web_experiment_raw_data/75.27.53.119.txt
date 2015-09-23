@@ -1,0 +1,2 @@
+-1;7;shape_first;height;9;yes
+3;4;shape_first;height;7;yes

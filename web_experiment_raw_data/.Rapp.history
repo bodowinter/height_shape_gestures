@@ -1,0 +1,1719 @@
+580/3
+23-7
+load("/Users/teeniematlock/Desktop/research/viberg/viberg_google_ngram_data.RData")
+all_lang = rbind(english_2008,german_2008,spanish_2008,italian_2008,russian_2008,chinese_2008,hebrew_2008)
+## Take only year 2008 (most reliable across all languages):#
+#
+english_2008 = english_ngram[english_ngram$Year == 2008,]#
+spanish_2008 = spanish_ngram[spanish_ngram$Year == 2008,]#
+russian_2008 = russian_ngram[russian_ngram$Year == 2008,]#
+german_2008 = german_ngram[german_ngram$Year == 2008,]#
+italian_2008 = italian_ngram[italian_ngram$Year == 2008,]#
+hebrew_2008 = hebrew_ngram[hebrew_ngram$Year == 2008,]#
+chinese_2008 = chinese_ngram[chinese_ngram$Year == 2008,]#
+#
+## Z-score:#
+#
+english_2008$Frequency = scale(english_2008$Frequency)#
+spanish_2008$Frequency = scale(spanish_2008$Frequency)#
+russian_2008$Frequency = scale(russian_2008$Frequency)#
+german_2008$Frequency = scale(german_2008$Frequency)#
+italian_2008$Frequency = scale(italian_2008$Frequency)#
+hebrew_2008$Frequency = scale(hebrew_2008$Frequency)#
+chinese_2008$Frequency = scale(chinese_2008$Frequency)#
+#
+## Make into data frames:#
+#
+english_2008 = as.data.frame(english_2008)#
+spanish_2008 = as.data.frame(spanish_2008)#
+russian_2008 = as.data.fram(russian_2008)#
+german_2008 = as.data.frame(german_2008)#
+italian_2008 = as.data.frame(italian_2008)#
+hebrew_2008 = as.data.frame(hebrew_2008)#
+chinese_2008 = as.data.frame(chinese_2008)#
+#
+## Add hierarchy information:#
+#
+english_2008$Hierarchy = english[match(english_2008$Phrase,english$Translation),]$Hierarchy#
+german_2008$Hierarchy = german[match(german_2008$Phrase,german$Translation),]$Hierarchy#
+spanish_2008$Hierarchy = spanish[match(spanish_2008$Phrase,spanish$Translation),]$Hierarchy#
+russian_2008$Hierarchy = russian[match(russian_2008$Phrase,russian$Translation),]$Hierarchy#
+italian_2008$Hierarchy = italian[match(italian_2008$Phrase,italian$Translation),]$Hierarchy#
+hebrew_2008$Hierarchy = hebrew[match(hebrew_2008$Phrase,hebrew$Translation),]$Hierarchy#
+chinese_2008$Hierarchy = chinese[match(chinese_2008$Phrase,chinese$Translation),]$Hierarchy#
+#
+## Make all_lang based on English first:#
+#
+# # all_lang = head(as.data.frame(english_2008[english_2008$Phrase %in% head(english$Translation),]))#
+# all_lang$Frequency = scale(head(as.data.frame(english_2008[english_2008$Phrase %in% head(english$Translation),]))$Frequency)#
+#
+# xtemp = head(as.data.frame(spanish_2008[spanish_2008$Phrase %in% head(spanish$Translation),]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+# xtemp = head(as.data.frame(german_2008[german_2008$Phrase %in% head(german$Translation),]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+# xtemp = head(as.data.frame(russian_2008[russian_2008$Phrase %in% head(russian$Translation),]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+# xtemp = head(as.data.frame(italian_2008[italian_2008$Phrase %in% head(italian$Translation),]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+# xtemp = head(as.data.frame(hebrew_2008[hebrew_2008$Phrase %in% head(hebrew$Translation),]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+# xtemp = head(as.data.frame(chinese_2008[chinese_2008$Phrase %in% chinese[1:11,]$Translation,]))#
+# xtemp$Frequency = scale(xtemp$Frequency)#
+#
+# all_lang = rbind(all_lang,xtemp)#
+#
+## Put everything together:#
+#
+all_lang = rbind(english_2008,german_2008,spanish_2008,italian_2008,russian_2008,chinese_2008,hebrew_2008)#
+#
+## Make a language column:#
+#
+languages = c("english","german","spanish","italian","russian","chinese","hebrew")#
+reps = c(nrow(english_2008),nrow(german_2008),nrow(spanish_2008),	nrow(italian_2008),nrow(russian_2008),nrow(chinese_2008),nrow(hebrew_2008))#
+all_lang$Language = rep(languages,times=reps)#
+#
+## Squared term:#
+#
+all_lang$Hierarchy2 = all_lang$Hierarchy^2#
+#
+## Make a model:#
+#
+xmdl = lmer(Frequency ~ Hierarchy + Hierarchy2 + (1+Hierarchy+Hierarchy2|Language),all_lang,REML=T)#
+summary(xmdl)
+library(lme4)
+xmdl = lmer(Frequency ~ Hierarchy + Hierarchy2 + (1+Hierarchy+Hierarchy2|Language),all_lang,REML=T)#
+summary(xmdl)
+set.seed(42)#
+quartz("",9.5,5.6)#
+par(mai=c(0.65,1.5,0.25,0.5))#
+plot(1,1,type="n",xaxt="n",yaxt="n",ylim=c(-0.5,1.5),xlim=c(0.5,4.5),xlab="",ylab="")#
+axis(side=1,at=1:4,labels=c("sight","hearing","touch","taste/smell"),font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+axis(side=2,at=seq(-0.5,1.5,0.5),las=2,font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+for(i in 1:nrow(coef(xmdl)$Language)){#
+	points(1:4,#
+		coef(xmdl)$Language[i,][,1]+((1:4)*coef(xmdl)$Language[i,][,2])+(((1:4)^2)*coef(xmdl)$Language[i,][,3]),type="b",pch=19,lty=i)#
+	}#
+text(3.5,1,labels="(lines represent\nmixed model\npredictions\nfor different languages)",font=2,cex=1.5)#
+abline(h=0,lty=2,lwd=2)#
+mtext(side=2,line=3.5,text="Google Ngram\nRelative Frequency (z-scored)",cex=1.7,font=2)#
+box(lwd=2)
+set.seed(42)#
+quartz("",9.5,5.6)#
+par(mai=c(0.65,1.5,0.25,0.5))#
+plot(1,1,type="n",xaxt="n",yaxt="n",ylim=c(-0.5,1.5),xlim=c(0.5,4.5),xlab="",ylab="")#
+axis(side=1,at=1:4,labels=c("sight","hearing","touch","taste/smell"),font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+axis(side=2,at=seq(-0.5,1.5,0.5),las=2,font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+for(i in 1:nrow(coef(xmdl)$Language)){#
+	points(1:4,#
+		coef(xmdl)$Language[i,][,1]+((1:4)*coef(xmdl)$Language[i,][,2])+(((1:4)^2)*coef(xmdl)$Language[i,][,3]),type="b",pch=19,lty=i)#
+	}#
+text(3.5,1,labels="(lines represent\nmixed modelpredictions\nfor different languages)",font=2,cex=1.5)#
+abline(h=0,lty=2,lwd=2)#
+mtext(side=2,line=3.5,text="Google Ngram\nRelative Frequency (z-scored)",cex=1.7,font=2)#
+box(lwd=2)
+set.seed(42)#
+quartz("",9.5,5.6)#
+par(mai=c(0.65,1.5,0.25,0.5))#
+plot(1,1,type="n",xaxt="n",yaxt="n",ylim=c(-0.5,1.5),xlim=c(0.5,4.5),xlab="",ylab="")#
+axis(side=1,at=1:4,labels=c("sight","hearing","touch","taste/smell"),font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+axis(side=2,at=seq(-0.5,1.5,0.5),las=2,font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+for(i in 1:nrow(coef(xmdl)$Language)){#
+	points(1:4,#
+		coef(xmdl)$Language[i,][,1]+((1:4)*coef(xmdl)$Language[i,][,2])+(((1:4)^2)*coef(xmdl)$Language[i,][,3]),type="b",pch=19,lty=i)#
+	}#
+text(3.5,1,labels="(lines represent\nmixed modelpredictions\nfor different languages)",font=2,cex=2)#
+abline(h=0,lty=2,lwd=2)#
+mtext(side=2,line=3.5,text="Google Ngram\nRelative Frequency (z-scored)",cex=1.7,font=2)#
+box(lwd=2)
+set.seed(42)#
+quartz("",9.5,5.6)#
+par(mai=c(0.65,1.5,0.25,0.5))#
+plot(1,1,type="n",xaxt="n",yaxt="n",ylim=c(-0.5,1.5),xlim=c(0.5,4.5),xlab="",ylab="")#
+axis(side=1,at=1:4,labels=c("sight","hearing","touch","taste/smell"),font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+axis(side=2,at=seq(-0.5,1.5,0.5),las=2,font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+for(i in 1:nrow(coef(xmdl)$Language)){#
+	points(1:4,#
+		coef(xmdl)$Language[i,][,1]+((1:4)*coef(xmdl)$Language[i,][,2])+(((1:4)^2)*coef(xmdl)$Language[i,][,3]),type="b",pch=19,lty=i)#
+	}#
+text(3.5,1,labels="(lines represent\nmixed modelpredictions\nfor different languages)",font=2,cex=1.8)#
+abline(h=0,lty=2,lwd=2)#
+mtext(side=2,line=3.5,text="Google Ngram\nRelative Frequency (z-scored)",cex=1.7,font=2)#
+box(lwd=2)
+set.seed(42)#
+quartz("",9.5,5.6)#
+par(mai=c(0.65,1.5,0.25,0.5))#
+plot(1,1,type="n",xaxt="n",yaxt="n",ylim=c(-0.5,1.5),xlim=c(0.5,4.5),xlab="",ylab="")#
+axis(side=1,at=1:4,labels=c("sight","hearing","touch","taste/smell"),font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+axis(side=2,at=seq(-0.5,1.5,0.5),las=2,font=2,lwd=2,lwd.ticks=2,cex.axis=1.5)#
+for(i in 1:nrow(coef(xmdl)$Language)){#
+	points(1:4,#
+		coef(xmdl)$Language[i,][,1]+((1:4)*coef(xmdl)$Language[i,][,2])+(((1:4)^2)*coef(xmdl)$Language[i,][,3]),type="b",pch=19,lty=i)#
+	}#
+text(3.25,1,labels="(lines represent\nmixed modelpredictions\nfor different languages)",font=2,cex=1.8)#
+abline(h=0,lty=2,lwd=2)#
+mtext(side=2,line=3.5,text="Google Ngram\nRelative Frequency (z-scored)",cex=1.7,font=2)#
+box(lwd=2)
+## Bodo Winter#
+## May 16, 2014; Adapted March 11, 2015 for UC Merced course#
+#
+## Create a presentation function:#
+#
+pplot = function(myxlim,myylim,#
+	xlabel,ylabel,#
+	myxaxis,myyaxis,axes=T,...){#
+	quartz("",9,7);par(mai=c(1.5,1.5,1.5,0.8))#
+	plot(1,1,type="n",xlab="",ylab="",#
+		xaxt="n",yaxt="n",#
+		bty="n",#
+		xlim=myxlim,ylim=myylim,...)#
+	box(lwd=4)#
+	if(axes){#
+		axis(1,at=myxaxis,font=2,lwd=4,lwd.ticks=4,cex.axis=1.75)#
+		axis(2,at=myyaxis,font=2,lwd=4,lwd.ticks=4,las=2,cex.axis=1.75)#
+		}#
+	mtext(text=xlabel,side=1,line=4.5,font=2,cex=2.25)#
+	mtext(text=ylabel,side=2,line=4.5,font=2,cex=2.25)#
+	}#
+#
+## Generate data:#
+set.seed(42)#
+x = rep(1:16,each=3)#
+x = x[x!=10]#
+y = 350+6*x+rnorm(length(x),sd=15)#
+# plot(x,y)#
+#
+## Plot that data:#
+## Slide 1:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## Slide 2:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## Slide 3:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+#
+## Slide 4:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==350+6%*%x))#
+#
+## Slide 5:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==350+6%*%x))#
+## Add tick marks:#
+segments(x0=10,y0=300,y1=310,lwd=8,col="darkred")		# tick mark at 10#
+text(x=10,y=325,labels=expression(x==10),#
+	font=2,cex=2.5,col="darkred",adj=c(0.5,NA))#
+box(lwd=4)#
+#
+## Slide 6:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==350+6%*%10))#
+## Add tick marks:#
+segments(x0=10,y0=300,y1=310,lwd=8,col="darkred")		# tick mark at 10#
+text(x=10,y=325,labels=expression(x==10),#
+	font=2,cex=2.5,col="darkred",adj=c(0.5,NA))#
+box(lwd=4)#
+#
+## Slide 7:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==350+60))#
+## Add tick marks:#
+segments(x0=10,y0=300,y1=310,lwd=8,col="darkred")		# tick mark at 10#
+text(x=10,y=325,labels=expression(x==10),#
+	font=2,cex=2.5,col="darkred",adj=c(0.5,NA))#
+box(lwd=4)#
+#
+## Slide 8:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==410))#
+## Add tick marks:#
+segments(x0=10,y0=300,y1=310,lwd=8,col="darkred")		# tick mark at 10#
+text(x=10,y=325,labels=expression(x==10),#
+	font=2,cex=2.5,col="darkred",adj=c(0.5,NA))#
+box(lwd=4)#
+#
+## Slide 9 (with added point):#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(v=0,lwd=4,lty=2)#
+## Calculation text:#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(y==410))#
+## Add tick marks:#
+segments(x0=10,y0=300,y1=310,lwd=8,col="darkred")		# tick mark at 10#
+text(x=10,y=325,labels=expression(x==10),#
+	font=2,cex=2.5,col="darkred",adj=c(0.5,NA))#
+box(lwd=4)#
+## Add point			# Slide 7#
+xmdl = lm(y~x)#
+points(10,coef(xmdl)[1]+coef(xmdl)[2]*10,pch=21,bg="steelblue3",cex=3)#
+#
+####### RESIDUALS AND STUFF:#
+#
+## vertical residuals; quantity being minimized is deviation in your response#
+xmdl = lm(y~x)#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+segments(x0=x,y0=fitted(xmdl),y1=fitted(xmdl)+residuals(xmdl),lwd=4,col="darkred")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## horizontal residuals; quantity being minimized is deviation in your response#
+xmdl_r = lm(x~y)#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+segments(x0=fitted(xmdl_r),x1=fitted(xmdl_r)+residuals(xmdl_r),y0=y,lwd=4,col="darkred")#
+lines(predict(xmdl_r,newdata=data.frame(y=seq(300,500,0.01))),seq(300,500,0.01),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## both together:#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+lines(predict(xmdl_r,newdata=data.frame(y=seq(300,500,0.01))),seq(300,500,0.01),lwd=6,col="steelblue")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+# # ## PCA:#
+# xdata = cbind(x=x-mean(x),y=y-mean(y))#
+# xcov = cov(xdata)#
+# xeigenvalues = eigen(xcov)$values#
+# xeigenvectors = eigen(xcov)$vectors#
+# xnormvals = seq(-2,18,0.01)#
+# xnormvals = xnormvals-mean(xnormvals)#
+# pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	# xaxs="i",yaxs="i")#
+# lines(seq(-2,18,0.01), (xeigenvectors[2,1]/xeigenvectors[1,1] * xnormvals) + mean(y),lwd=6,col="darkgreen")#
+# # abline(lm(y~x),lwd=6,col="black")#
+# # lines(predict(xmdl_r,newdata=data.frame(y=seq(300,500,0.01))),seq(300,500,0.01),lwd=6,col="black")#
+# points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+####### HYPOTHESIS TESTING LINES:#
+#
+## slope null hypothesis#
+xmdl = lm(y~x)#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(a=mean(y),b=0,lty=2,col="darkred",lwd=4)#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+## intercept null hypothesis#
+xmdl = lm(y~x)#
+pplot(c(-1,17),c(-50,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(0,500,100),#
+	xaxs="i",yaxs="i")#
+abline(a=mean(y),b=0,lty=2,col="darkred",lwd=4)#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+## intercept null hypothesis: plot axis#
+xmdl = lm(y~x)#
+pplot(c(-1,17),c(-50,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(0,500,100),#
+	xaxs="i",yaxs="i")#
+abline(a=mean(y),b=0,lty=2,col="darkred",lwd=4)#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(h=0,lty=2,lwd=4)#
+abline(v=0,lty=2,lwd=4)#
+box(lwd=4)#
+#
+## intercept null hypothesis: plot points#
+xmdl = lm(y~x)#
+pplot(c(-1,17),c(-50,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(0,500,100),#
+	xaxs="i",yaxs="i")#
+abline(a=mean(y),b=0,lty=2,col="darkred",lwd=4)#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(h=0,lty=2,lwd=4)#
+abline(v=0,lty=2,lwd=4)#
+points(0,coef(xmdl)[1],pch=21,bg="steelblue3",cex=3)#
+points(0,0,pch=21,bg="steelblue3",cex=3)#
+box(lwd=4)#
+#
+####### OVERALL MODEL, R-squared:#
+#
+xmdl = lm(y~x)#
+SSR=round(sum(residuals(xmdl)^2))#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(SS[R]==12598))#
+segments(x0=x,y0=fitted(xmdl),y1=fitted(xmdl)+residuals(xmdl),lwd=4,col="darkred")#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## Add sum of squares:#
+xmdl_null = lm(y~1)#
+SST=round(sum(residuals(xmdl_null)^2))#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(SS[T]==37078))#
+segments(x0=x,y0=mean(y),y1=y,lwd=4,col="darkred")#
+abline(a=mean(y),b=0,col="black",lwd=6)#
+# abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+## Mean line vs. regression line:#
+xmdl_null = lm(y~1)#
+SSM=round(sum(residuals(xmdl_null)^2)-sum(residuals(xmdl)^2))#
+# SST=round(sum(residuals(xmdl_null)^2))#
+pplot(c(-1,17),c(300,500),"Noise (dB)","Response time (ms)",seq(0,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+text(x=16,y=480,cex=2.5,font=2,adj=c(1,NA),#
+	labels=expression(SS[T]-SS[R]==SS[M]))#
+segments(x0=x,y0=mean(y),y1=fitted(xmdl),lwd=4,col="darkred")#
+abline(a=mean(y),b=0,col="black",lwd=6)#
+abline(xmdl,col="black",lwd=6)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+# abline(lm(y~x),lwd=6,col="black")#
+box(lwd=4)#
+####### CENTERING:#
+#
+## Histogram#
+xhist = hist(x,breaks=12)#
+xhist_c = xhist#
+xhist_c$breaks = xhist_c$breaks-mean(x)#
+xhist_c$mids = xhist_c$mids-mean(x)#
+#
+## Plot 1, distribution where it is:#
+#
+pplot(c(-18,18),c(0,10),"Noise (dB)","Frequency",seq(-16,16,4),seq(0,10,2))#
+plot(xhist,add=T,col="steelblue")#
+abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)#
+#
+## Plot 2, centering:#
+#
+pplot(c(-18,18),c(0,10),"Noise (dB)","Frequency",seq(-16,16,4),seq(0,10,2))#
+plot(xhist_c,add=T,col="steelblue")#
+abline(v=0,col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)#
+#
+## Centering predictor in regression:#
+#
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+#
+## Centering predictor in regression, add mean:#
+#
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+abline(v=0,lwd=4,lty=2)#
+abline(lm(y~x),lwd=6,col="black")#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+## Centering predictor in regression, add mean:#
+#
+x_c = x-mean(x)#
+xmdl_c = lm(y ~ x_c)#
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+# abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+abline(v=mean(x_c),col="goldenrod3",lwd=10)		# add mean#
+abline(xmdl_c,lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x_c,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+## Centering predictor in regression, add intercept:#
+#
+x_c = x-mean(x)#
+xmdl_c = lm(y ~ x_c)#
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+# abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+abline(v=mean(x_c),col="goldenrod3",lwd=10)		# add mean#
+abline(h=mean(y),lwd=4,lty=2,col="darkred")#
+abline(xmdl_c,lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x_c,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)#
+#
+####### STANDARDIZING:#
+#
+## Histogram#
+xhist = hist(x,breaks=12)#
+xhist_c = xhist#
+xhist_c$breaks = xhist_c$breaks-mean(x)#
+xhist_c$mids = xhist_c$mids-mean(x)#
+xhist_z = xhist_c#
+xhist_z$breaks = xhist_z$breaks/sd(x)#
+xhist_z$mids = xhist_z$mids/sd(x)#
+#
+## Plot 1, distribution where it is:#
+#
+pplot(c(-18/sd(x),18/sd(x)),c(0,10),"Noise (dB)","Frequency",seq(-4,4,1),seq(0,10,2))#
+plot(xhist_z,add=T,col="steelblue")#
+abline(v=0,col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)#
+#
+## Plot 2, standardization on th plot:#
+#
+x_c = x-mean(x)#
+xmdl_c = lm(y ~ x_c)#
+pplot(c(-17,17),c(300,500),"Noise (dB) (z-scores)","Response time (ms)",0,seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+axis(1,at=c(-3,-2,-1,1,2,3)*sd(x),font=2,lwd=4,lwd.ticks=4,cex.axis=1.75,labels=c(-3,-2,-1,1,2,3))#
+abline(v=mean(x_c),col="goldenrod3",lwd=10)		# add mean#
+abline(h=mean(y),lwd=4,lty=2,col="darkred")#
+abline(xmdl_c,lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x_c,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)
+pplot(c(-18,18),c(0,10),"Noise (dB)","Frequency",seq(-16,16,4),seq(0,10,2))#
+plot(xhist,add=T,col="steelblue")#
+abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)#
+#
+## Plot 2, centering:#
+#
+pplot(c(-18,18),c(0,10),"Noise (dB)","Frequency",seq(-16,16,4),seq(0,10,2))#
+plot(xhist_c,add=T,col="steelblue")#
+abline(v=0,col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)
+x_c = x-mean(x)#
+xmdl_c = lm(y ~ x_c)#
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+# abline(v=mean(x),col="goldenrod3",lwd=10)		# add mean#
+abline(v=mean(x_c),col="goldenrod3",lwd=10)		# add mean#
+abline(xmdl_c,lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x_c,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+box(lwd=4)
+pplot(c(-18,18),c(0,10),"Noise (dB)","Frequency",seq(-16,16,4),seq(0,10,2))#
+plot(xhist_c,add=T,col="steelblue")#
+abline(v=0,col="goldenrod3",lwd=10)		# add mean#
+box(lwd=4)#
+abline(h=mean(y),lwd=4,lty=2,col="darkred")
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(h=mean(y),lwd=4,lty=2,col="darkred")
+xmdl
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(lm(y~x),lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)#
+abline(h=coef(xmdl)[1],lwd=4,lty=2,col="darkred")
+pplot(c(-17,17),c(300,500),"Noise (dB)","Response time (ms)",seq(-16,16,4),seq(300,500,100),#
+	xaxs="i",yaxs="i")#
+abline(h=coef(xmdl)[1],lwd=4,lty=2,col="darkred")#
+abline(lm(y~x),lwd=6,col="black")#
+abline(v=0,lwd=4,lty=2)#
+points(x,y,pch=21,bg="goldenrod3",cex=2,col="black",lwd=1)
+x = rnorm(50)
+hist(x)
+x = rnorm(50)#
+y = 3*x#
+plot(x,y)
+x = rnorm(50)#
+y = 3*x + rnorm(50)#
+plot(x,y)
+xmdl = lm(y ~ x)
+xmdl
+coef(xmdl)
+coef(xmdl)[1]
+coef(xmdl)[2]
+y = y + 50
+xmdl = lm(y ~ x)#
+xmdl
+plot(x,y)#
+abline(xmdl)
+plot(x,y)#
+abline(a=coef(xmdl)[1],b=coef(xmdl)[2])
+xvals = seq(min(x),max(x),0.01)
+xvals = seq(min(x),max(x),0.01)#
+yvals = coef(xmdl)[1] + coef(xmdl)[2]*xvals
+xvals = seq(min(x),max(x),0.01)#
+yvals = coef(xmdl)[1] + coef(xmdl)[2]*xvals#
+plot(x,y)#
+points(xvals,yvals,type="l")
+summary(xmdl)
+summary(xmdl <- lm(y~x))
+str(summary(xmdl))
+summary(xmdl)$r.squared
+summary(xmdl)$fstatistic
+fitted(xmdl)
+plot(y~x)#
+points(x,fitted(xmdl),pch=19,red="darkred")
+fitted(xmdl)+residuals(xmdl)
+plot(y,fitted(xmdl)+residuals(xmdl))
+x = rnorm(50)
+y = x*3 + rnorm(50)
+cor(x,y)
+xz = scale(x)
+yz = scale(x)
+summary(xmdl <- lm(y ~ x))
+summary(xmdl <- lm(yz ~ xz))
+summary(xmdl <- lm(xz ~ yz))
+yz = scale(y)
+summary(xmdl <- lm(xz ~ yz))
+cor(x,y)
+9.556e-01
+lm(scale(y) ~ scale(x))
+library(MuMIn)
+apropos("r.squared")
+search()
+?install.packages()
+install.packages()
+x = rnorm(50)
+hist(x)
+x
+y = 3*x
+plot(x,y)
+y = 3*x + rnorm(50)#
+plot(x,y)
+ls()
+xmdl = lm(y~x)
+ls()
+xmdl
+xmdl = lm(y~1+x)#
+ls()#
+xmdl
+xmdl = lm(y~1+x)
+xmdl
+coef(xmdl)
+coef(xmdl)[1]
+coef(xmdl)[2]
+coef(xmdl)
+xmdl
+str(xmdl)
+coef(xmdl)["(Intercept)"]
+coef(xmdl)
+plot(x,y)#
+abline(xmdl)
+plot(x,y)
+xvals = seq(-1,1,0.001)
+xvals
+yvals = coef(xmdl)[1]+#
+	xvals*coef(xmdl)[2]
+xvals = seq(-1,1,0.001)#
+yvals = coef(xmdl)[1]+#
+	xvals*coef(xmdl)[2]
+yvals
+plot(x,y)#
+points(xvals,yvals,type="l")
+fitted(xmdl)
+residuals(xmdl)
+plot(fitted(xmdl)+residuals(xmdl),#
+	y)
+summary(xmdl)
+summary(bla = lm(y~x))
+summary(bla <- lm(y~x))
+ls()
+set.seed(666)#
+pred = c(rep(0,20),rep(1,20))#
+resp = c(rnorm(20,mean=2,sd=1),#
+		rnorm(20,mean=2,sd=1))#
+for(i in 1:10){#
+	resp = c(resp[1:20],resp[21:40]+1)#
+	plot(resp~pred,#
+		xlim=c(-1,2),ylim=c(0,14),xaxt="n",xlab="")#
+	axis(side=1,at=c(0,1),labels=c("A","B"))#
+	text(paste("mean of B\nequals:",i,sep="\n"),#
+		x=-0.5,y=10,cex=1.5,font=2)#
+	abline(lm(resp~pred))#
+	Sys.sleep(1.25)            #
+	}
+install.packages("jpeg")
+jj = readJPEG("continuum_matrix.jpg",native=T)
+library(jpeg)
+jj = readJPEG("continuum_matrix.jpg",native=T)
+jj = readJPEG("continuum_matrix.jpg",native=F)
+install.packages("png")
+library(png)#
+pp = readJPEG("continuum_matrix.png")
+pp = readJPEG("continuum_matrix.png")
+pp = readPNG("continuum_matrix.png")
+install.packages("EBImage")
+library(EBImage)
+library(png)
+pp = readPNG("continuum_matrix.png")
+getwd()
+setwd("/Users/teeniematlock/Desktop/research/gesture_categorization/")
+library(png)#
+pp = readPNG("continuum_matrix.png")
+library(jpeg)
+jj = readJPEG("continuum_matrix.jpg")
+jj = readJPEG("continuum_matrix.jpg")#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+par(mai=c(1,1,0.5,0.5))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+quartz("",8,6);par(mai=c(1,1,0.5,0.5))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+quartz("",9,5);par(mai=c(1,1,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+quartz("",8,5.5);par(mai=c(1,1,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)#
+axis(side=1,seq(0,1,length.out=9),labels=1:9)
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)#
+axis(side=1,seq(1/10,9/10,length.out=9),labels=1:9)
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)
+jj = readJPEG("continuum_matrix.jpg")
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)
+quartz("",8,5.5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)
+quartz("",8,5);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(1/10,9/10,length.out=9),labels=1:9)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,9.5,length.out=9),labels=1:9)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+# box(lwd=4)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.05,0.95,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(0.75,0.75,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(1,1,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,labels="Pinkie Curl",cex=1.5,line=2,font=2)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.5,line=2,font=2)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.5,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.5,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)#
+mtext(side=2,text="Index Curve",cex=1.75,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.25,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,xaxs="i",yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)#
+mtext(side=2,text="Index Curve",cex=1.75,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.25,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,yaxs="i")#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)#
+mtext(side=2,text="Index Curve",cex=1.75,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.25,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,yaxs="i",xlim=c(0.02,0.98)#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)#
+mtext(side=2,text="Index Curve",cex=1.75,line=3,font=2)
+quartz("",8,6);par(mai=c(1,1.25,0.25,0.25))#
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE,yaxs="i",xlim=c(0.02,0.98))#
+rasterImage(jj,0,0,1,1)#
+box(lwd=4)#
+axis(side=2,seq(0.1,0.9,length.out=6),labels=1:6,lwd=4,font=2,cex.axis=1.5)#
+axis(side=1,seq(0.05,0.95,length.out=9),labels=1:9,lwd=4,font=2,cex.axis=1.5)#
+mtext(side=1,text="Pinkie Curl",cex=1.75,line=3,font=2)#
+mtext(side=2,text="Index Curve",cex=1.75,line=3,font=2)
+## Bodo Winter#
+## September 1, 2014#
+## Analysis of Julius's data#
+#
+#########################################################################
+######################## Define functions#
+#########################################################################
+#
+## Function for batch-loading in .txt files from web experiments:#
+#
+load_files = function(filenames,new=F,show=T,ncol=6){#
+	xdata = c()#
+	for(i in 1:length(filenames)){#
+				if(show){print(filenames[i])}#
+				xtemp = read.table(filenames[i],sep=";",stringsAsFactors=F)#
+				if(ncol(xtemp) == ncol){#
+					xdata = rbind(xdata,xtemp)}#
+				}#
+	return(xdata)#
+	}#
+#
+## Function for logistic regression (inverse logit transform):#
+#
+logit.inv = function(var){exp(var)/(1+exp(var))}#
+#
+## My empty plot function:#
+#
+emptyplot=function(x,y,xaxt="n",yaxt="n",ylab="",xlab="",type="n",main="",...){#
+	plot(x,y,xaxt=xaxt,yaxt=yaxt,ylab=ylab,xlab=xlab,type=type,main=main,...)#
+	}#
+#########################################################################
+######################## Load in data from web folder#
+#########################################################################
+#
+## Set working directory:#
+#
+setwd("/Users/teeniematlock/Desktop/research/gesture_categorization/web_experiment/webexperiment1_datanew_with_extremes_and_filled_in/")#
+#
+## Load in data:#
+#
+ju = load_files(list.files())#
+#
+## Get rid of wrong row:#
+#
+ju = ju[-c(265),]#
+#
+## Rename columns:#
+#
+colnames(ju) = c("index_curve","curl","question_order","choice","confidence","seen_picture")#
+#
+## Write:#
+#
+# write.table(ju,"/Users/teeniematlock/Desktop/research/gesture_categorization/web_experiment/ju_E1_with_extremes_and_filled_in.csv",sep=",",row.names=F)#
+#########################################################################
+######################## Load in libraries:#
+#########################################################################
+#
+library(MuMIn)#
+#########################################################################
+######################## The curl variable is reversed, reverse it back:#
+#########################################################################
+#
+ju$pinkie_curl = numeric(nrow(ju))#
+ju[ju$curl == 1,]$pinkie_curl = 9#
+ju[ju$curl == 2,]$pinkie_curl = 8#
+ju[ju$curl == 3,]$pinkie_curl = 7#
+ju[ju$curl == 4,]$pinkie_curl = 6#
+ju[ju$curl == 5,]$pinkie_curl = 5#
+ju[ju$curl == 6,]$pinkie_curl = 4#
+ju[ju$curl == 7,]$pinkie_curl = 3#
+ju[ju$curl == 8,]$pinkie_curl = 2#
+ju[ju$curl == 9,]$pinkie_curl = 1#
+#########################################################################
+######################## Additional data cleaning:#
+#########################################################################
+#
+## Check seen picture:#
+#
+table(ju$seen_picture)		# all yes, so we can safely exclude this#
+#
+## Add two to index curve to make the index curve scale go from 1 to 6:#
+#
+ju$index_curve = ju$index_curve+2#
+#
+## Resort data frame:#
+#
+ju = ju[,c("index_curve","pinkie_curl","question_order","confidence","choice")]#
+#########################################################################
+######################## Analysis#
+#########################################################################
+#
+## Look at distribution:#
+#
+table(ju$index_curve)#
+table(ju$pinkie_curl)#
+table(ju$pinkie_curl,ju$index_curve)#
+table(ju$choice)/sum(table(ju$choice))#
+#
+## Center continuous predictors:#
+#
+ju$index_curve_c = ju$index_curve-mean(ju$index_curve)#
+ju$pinkie_curl_c = ju$pinkie_curl-mean(ju$pinkie_curl)#
+ju$confidence_c = ju$confidence-mean(ju$confidence)#
+#
+## Make question order into deviation coding, so that the intercept represents the grand mean:#
+#
+ju$question_order = as.factor(ju$question_order)#
+contrasts(ju$question_order) = contr.sum(2)/2#
+#
+## Create quadratic predictors for curvature and curl:#
+#
+ju$pinkie_curl_c2 = ju$pinkie_curl_c^2#
+ju$index_curve_c2 = ju$index_curve_c^2#
+#
+## Make shape the reference level (for consistency with plots below):#
+#
+ju$choice = as.factor(ju$choice)#
+ju$choice = relevel(ju$choice,ref="shape")#
+#
+## Run a model:#
+#
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c:index_curve_c +#
+	pinkie_curl_c2 + index_curve_c2 +#
+	question_order,ju,family="binomial"))#
+drop1(xmdl,test="Chisq")		# this is what we report in 4.1.3. for the non-significant effects#
+#
+## Deriving at the minimal optimal model:#
+#
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2 +#
+	question_order,ju,family="binomial"))#
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2,ju,family="binomial"))#
+drop1(xmdl,test="Chisq")#
+r.squaredGLMM(xmdl)#
+#
+## For reporting odds:#
+#
+exp(coef(xmdl))#
+exp(coef(xmdl)*-1)#
+#
+## Bias to pick the shape choice:#
+#
+table(ju$choice)#
+#
+## Means:#
+#
+aggregate(index_curve ~ choice,ju,mean)#
+aggregate(pinkie_curl ~ choice,ju,mean)
+xtab = table(ju$index_curve,ju$choice)#
+#
+## Get overall sums:#
+#
+RowSums = rowSums(xtab)#
+#
+## Make 'xtab' into dataframe:#
+#
+xtab = as.data.frame(xtab)#
+#
+## Rename columns:#
+#
+colnames(xtab) = c("index_curve","choice","Freq")#
+#
+## Add the overall sums:#
+#
+xtab$RowSums = RowSums#
+#
+## Calculate proportions:#
+#
+xtab$Proportions = xtab$Freq/xtab$RowSums#
+#
+# # ## Make a plot:#
+#
+# quartz("",8,6)#
+# plot(1:6,xtab[7:12,]$Proportions,type="l",xlab="Curvature",ylab="Proportion of Height Responses",xaxt="n")#
+# axis(side=1,at=1:9,labels=1:9,font=2)#
+# axis(side=3,at=1:9,labels=RowSums,font=2)#
+#
+# # ## Plot the model into this:#
+#
+# xvals = seq(1,9,0.001)#
+# xvals_c = xvals-mean(xvals)#
+# points(xvals,logit.inv(coef(xmdl)["(Intercept)"]+coef(xmdl)["curvature_c"]*xvals_c+coef(xmdl)["curvature_c2"]*(xvals_c^2)),type="l")#
+#########################################################################
+######################## Make a plot of proportions against curl:#
+#########################################################################
+#
+## Get counts by curl:#
+#
+xtab = table(ju$pinkie_curl,ju$choice)#
+#
+## Get overall sums:#
+#
+RowSums = rowSums(xtab)#
+#
+## Make 'xtab' into dataframe:#
+#
+xtab = as.data.frame(xtab)#
+#
+## Rename columns:#
+#
+colnames(xtab) = c("pinkie_curl","choice","Freq")#
+#
+## Add the overall sums:#
+#
+xtab$RowSums = RowSums#
+#
+## Calculate proportions:#
+#
+xtab$Proportions = xtab$Freq/xtab$RowSums#
+#
+# ## Make a plot:#
+#
+quartz("",8,6)#
+plot(1:9,xtab[10:18,]$Proportions,type="l",xlab="Curl",ylab="Proportion of Height Responses",xaxt="n")#
+axis(side=1,at=1:9,labels=1:9,font=2)#
+axis(side=3,at=1:9,labels=RowSums,font=2)#
+#
+# ## Plot the model into this:#
+#
+# xvals = seq(1,9,0.001)#
+# xvals_c = xvals-mean(xvals)#
+# points(xvals,logit.inv(coef(xmdl)["(Intercept)"]+coef(xmdl)["curl_c"]*xvals_c+coef(xmdl)["curl_c2"]*(xvals_c^2)),type="l")#
+#########################################################################
+######################## Make a plot in a curl/curve plane:#
+#########################################################################
+#
+set.seed(42)#
+quartz("",8,6)#
+plot(1,1,xlim=c(0.5,9.5),ylim=c(0.5,6.5),type="n",xlab="Pinkie Curl",xaxt="n",ylab="Index Curve",yaxt="n",main="Red = shape, Blue = height")#
+axis(side=1,at=1:9,labels=1:9,font=2)#
+axis(side=2,at=1:6,labels=1:6,font=2,las=2)#
+points(jitter(ju[ju$choice=="shape",]$pinkie_curl),jitter(ju[ju$choice=="shape",]$index_curve),col=rgb(0.8,0.4,0.3,0.5),pch=19)#
+points(jitter(ju[ju$choice=="height",]$pinkie_curl),jitter(ju[ju$choice=="height",]$index_curve),col=rgb(0.3,0.4,0.8,0.5),pch=19)#
+#########################################################################
+######################## Make a publication ready plot with both proportions next to each other:#
+#########################################################################
+#
+## Curl proportions:#
+#
+xtab.curl = table(ju$pinkie_curl,ju$choice)#
+RowSums = rowSums(xtab.curl)#
+xtab.curl = as.data.frame(xtab.curl)#
+colnames(xtab.curl) = c("pinkie_curl","choice","Freq")#
+xtab.curl$RowSums = RowSums#
+xtab.curl$Proportions = xtab.curl$Freq/xtab.curl$RowSums#
+#
+## Curvature proportions:#
+#
+xtab.curvature = table(ju$index_curve,ju$choice)#
+RowSums = rowSums(xtab.curvature)#
+xtab.curvature = as.data.frame(xtab.curvature)#
+colnames(xtab.curvature) = c("index_curve","choice","Freq")#
+xtab.curvature$RowSums = RowSums#
+xtab.curvature$Proportions = xtab.curvature$Freq/xtab.curvature$RowSums#
+#
+## General plot commands:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\nheight responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+#########################################################################
+######################## Make a plot in a curl/curve plane:#
+#########################################################################
+#
+set.seed(42)#
+quartz("",8,6)#
+plot(1,1,xlim=c(0.5,9.5),ylim=c(0.5,6.5),type="n",xlab="Pinkie Curl",xaxt="n",ylab="Index Curve",yaxt="n",main="Red = shape, Blue = height")#
+axis(side=1,at=1:9,labels=1:9,font=2)#
+axis(side=2,at=1:6,labels=1:6,font=2,las=2)#
+points(jitter(ju[ju$choice=="shape",]$pinkie_curl),jitter(ju[ju$choice=="shape",]$index_curve),col=rgb(0.8,0.4,0.3,0.5),pch=19)#
+points(jitter(ju[ju$choice=="height",]$pinkie_curl),jitter(ju[ju$choice=="height",]$index_curve),col=rgb(0.3,0.4,0.8,0.5),pch=19)
+## Get counts by curl:#
+#
+xtab = table(ju$pinkie_curl,ju$choice)#
+#
+## Get overall sums:#
+#
+RowSums = rowSums(xtab)#
+#
+## Make 'xtab' into dataframe:#
+#
+xtab = as.data.frame(xtab)#
+#
+## Rename columns:#
+#
+colnames(xtab) = c("pinkie_curl","choice","Freq")#
+#
+## Add the overall sums:#
+#
+xtab$RowSums = RowSums#
+#
+## Calculate proportions:#
+#
+xtab$Proportions = xtab$Freq/xtab$RowSums#
+#
+# ## Make a plot:#
+#
+quartz("",8,6)#
+plot(1:9,xtab[10:18,]$Proportions,type="l",xlab="Curl",ylab="Proportion of Height Responses",xaxt="n")#
+axis(side=1,at=1:9,labels=1:9,font=2)#
+axis(side=3,at=1:9,labels=RowSums,font=2)#
+#
+# ## Plot the model into this:#
+#
+# xvals = seq(1,9,0.001)#
+# xvals_c = xvals-mean(xvals)#
+# points(xvals,logit.inv(coef(xmdl)["(Intercept)"]+coef(xmdl)["curl_c"]*xvals_c+coef(xmdl)["curl_c2"]*(xvals_c^2)),type="l")
+#########################################################################
+######################## Make a publication ready plot with both proportions next to each other:#
+#########################################################################
+#
+## Curl proportions:#
+#
+xtab.curl = table(ju$pinkie_curl,ju$choice)#
+RowSums = rowSums(xtab.curl)#
+xtab.curl = as.data.frame(xtab.curl)#
+colnames(xtab.curl) = c("pinkie_curl","choice","Freq")#
+xtab.curl$RowSums = RowSums#
+xtab.curl$Proportions = xtab.curl$Freq/xtab.curl$RowSums#
+#
+## Curvature proportions:#
+#
+xtab.curvature = table(ju$index_curve,ju$choice)#
+RowSums = rowSums(xtab.curvature)#
+xtab.curvature = as.data.frame(xtab.curvature)#
+colnames(xtab.curvature) = c("index_curve","choice","Freq")#
+xtab.curvature$RowSums = RowSums#
+xtab.curvature$Proportions = xtab.curvature$Freq/xtab.curvature$RowSums#
+#
+## General plot commands:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+#########################################################################
+######################## Make a plot of proportions against curvature:#
+#########################################################################
+#
+## Get counts by curl:#
+#
+xtab = table(ju$index_curve,ju$choice)#
+#
+## Get overall sums:#
+#
+RowSums = rowSums(xtab)#
+#
+## Make 'xtab' into dataframe:#
+#
+xtab = as.data.frame(xtab)#
+#
+## Rename columns:#
+#
+colnames(xtab) = c("index_curve","choice","Freq")#
+#
+## Add the overall sums:#
+#
+xtab$RowSums = RowSums#
+#
+## Calculate proportions:#
+#
+xtab$Proportions = xtab$Freq/xtab$RowSums#
+#
+# # ## Make a plot:#
+#
+# quartz("",8,6)#
+# plot(1:6,xtab[7:12,]$Proportions,type="l",xlab="Curvature",ylab="Proportion of Height Responses",xaxt="n")#
+# axis(side=1,at=1:9,labels=1:9,font=2)#
+# axis(side=3,at=1:9,labels=RowSums,font=2)#
+#
+# # ## Plot the model into this:#
+#
+# xvals = seq(1,9,0.001)#
+# xvals_c = xvals-mean(xvals)#
+# points(xvals,logit.inv(coef(xmdl)["(Intercept)"]+coef(xmdl)["curvature_c"]*xvals_c+coef(xmdl)["curvature_c2"]*(xvals_c^2)),type="l")
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2 +#
+	question_order,ju,family="binomial"))#
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2,ju,family="binomial"))#
+drop1(xmdl,test="Chisq")#
+r.squaredGLMM(xmdl)
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2 +#
+	question_order,ju,family="binomial"))
+summary(xmdl <- glm(choice ~ index_curve_c + pinkie_curl_c +#
+	pinkie_curl_c2 + index_curve_c2,ju,family="binomial"))
+drop1(xmdl,test="Chisq")
+r.squaredGLMM(xmdl)
+aggregate(index_curve ~ choice,ju,mean)
+aggregate(pinkie_curl ~ choice,ju,mean)
+xtab.curl = table(ju$pinkie_curl,ju$choice)#
+RowSums = rowSums(xtab.curl)#
+xtab.curl = as.data.frame(xtab.curl)#
+colnames(xtab.curl) = c("pinkie_curl","choice","Freq")#
+xtab.curl$RowSums = RowSums#
+xtab.curl$Proportions = xtab.curl$Freq/xtab.curl$RowSums#
+#
+## Curvature proportions:#
+#
+xtab.curvature = table(ju$index_curve,ju$choice)#
+RowSums = rowSums(xtab.curvature)#
+xtab.curvature = as.data.frame(xtab.curvature)#
+colnames(xtab.curvature) = c("index_curve","choice","Freq")#
+xtab.curvature$RowSums = RowSums#
+xtab.curvature$Proportions = xtab.curvature$Freq/xtab.curvature$RowSums#
+#
+## General plot commands:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+summary(xmdl)
+index_curve_c
+ju$index_curve_c
+unique(ju$index_curve_c)
+summary(xmdl)
+unique(ju$index_curve_c)
+unique(ju$index_curve_c2)
+mean(ju$index_curve_c)
+index_newdata = data.frame(index_curve_c=unique(ju$index_curve_c),#
+	index_curve_c2=unique(ju$index_curve_c2))
+index_newdata
+index_newdata = data.frame(index_curve_c=unique(ju$index_curve_c),#
+	index_curve_c2=unique(ju$index_curve_c2))
+index_newdata$pinkie_curl_c2 = 0
+index_newdata
+index_newdata$pinkie_curl_c = 0
+pinkie_newdata = data.frame(pinkie_curl_c=unique(ju$pinkie_curl_c),#
+	pinkie_curl_c2=unique(ju$pinkie_curl_c2))#
+pinkie_newdata$index_curve_c = 0#
+pinkie_newdata$index_curve_c2 = 0
+pinkie_newdata
+predict.glm(xmdl,newdata=index_newdata,type="response")
+predict.glm(xmdl,newdata=pinkie_newdata,type="response")
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"))
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l")
+plot(1:9,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l")
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l")
+summary(xmdl)
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l")
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+mean(pinkie_newdata$index_curve_c2)
+ju$pinkie_curl_c
+mean(ju$pinkie_curl_c)
+unique(ju$pinkie_curl_c)
+index_newdata = data.frame(index_curve_c=unique(ju$index_curve_c),#
+	index_curve_c2=unique(ju$index_curve_c2))#
+index_newdata$pinkie_curl_c = -3.8478964#
+index_newdata$pinkie_curl_c2 = -3.8478964
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+index_newdata = data.frame(index_curve_c=unique(ju$index_curve_c),#
+	index_curve_c2=unique(ju$index_curve_c2))#
+index_newdata$pinkie_curl_c = 0#
+index_newdata$pinkie_curl_c2 = 0#
+#
+## Make a data frame for pinkie curl predictions:#
+#
+pinkie_newdata = data.frame(pinkie_curl_c=unique(ju$pinkie_curl_c),#
+	pinkie_curl_c2=unique(ju$pinkie_curl_c2))#
+pinkie_newdata$index_curve_c = 0#
+pinkie_newdata$index_curve_c2 = 0#
+#
+## Get predictions for index_curve:#
+#
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))#
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+unique(ju$index_curve_c)
+unique(ju$index_curve_c2)
+unique(ju$index_curve_c)
+index_newdata = data.frame(index_curve_c=sort(unique(ju$index_curve_c)),#
+	index_curve_c2=sort(unique(ju$index_curve_c2)))#
+index_newdata$pinkie_curl_c = 0#
+index_newdata$pinkie_curl_c2 = 0#
+#
+## Make a data frame for pinkie curl predictions:#
+#
+pinkie_newdata = data.frame(pinkie_curl_c=sort(unique(ju$pinkie_curl_c)),#
+	pinkie_curl_c2=sort(unique(ju$pinkie_curl_c2)))#
+pinkie_newdata$index_curve_c = 0#
+pinkie_newdata$index_curve_c2 = 0#
+#
+## Get predictions for index_curve:#
+#
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+xtab.curl = table(ju$pinkie_curl,ju$choice)#
+RowSums = rowSums(xtab.curl)#
+xtab.curl = as.data.frame(xtab.curl)#
+colnames(xtab.curl) = c("pinkie_curl","choice","Freq")#
+xtab.curl$RowSums = RowSums#
+xtab.curl$Proportions = xtab.curl$Freq/xtab.curl$RowSums#
+#
+## Curvature proportions:#
+#
+xtab.curvature = table(ju$index_curve,ju$choice)#
+RowSums = rowSums(xtab.curvature)#
+xtab.curvature = as.data.frame(xtab.curvature)#
+colnames(xtab.curvature) = c("index_curve","choice","Freq")#
+xtab.curvature$RowSums = RowSums#
+xtab.curvature$Proportions = xtab.curvature$Freq/xtab.curvature$RowSums#
+#
+## General plot commands:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+xtab.curl = table(ju$pinkie_curl,ju$choice)#
+RowSums = rowSums(xtab.curl)#
+xtab.curl = as.data.frame(xtab.curl)#
+colnames(xtab.curl) = c("pinkie_curl","choice","Freq")#
+xtab.curl$RowSums = RowSums#
+xtab.curl$Proportions = xtab.curl$Freq/xtab.curl$RowSums#
+#
+## Curvature proportions:#
+#
+xtab.curvature = table(ju$index_curve,ju$choice)#
+RowSums = rowSums(xtab.curvature)#
+xtab.curvature = as.data.frame(xtab.curvature)#
+colnames(xtab.curvature) = c("index_curve","choice","Freq")#
+xtab.curvature$RowSums = RowSums#
+xtab.curvature$Proportions = xtab.curvature$Freq/xtab.curvature$RowSums#
+#
+## General plot commands:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+sort(unique(ju$pinkie_curl_c2))
+sort(unique(ju$pinkie_curl_c))
+pinkie_newdata = data.frame(pinkie_curl_c=sort(unique(ju$pinkie_curl_c)))#
+pinkie_newdata$pinkie_curl_c2 = pinkie_newdata$pinkie_curl_c^2#
+pinkie_newdata$index_curve_c = 0#
+pinkie_newdata$index_curve_c2 = 0
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+index_newdata = data.frame(index_curve_c=sort(unique(ju$index_curve_c)))#
+index_newdata$index_curve_c2 = index_newdata$index_curve_c^2#
+index_newdata$pinkie_curl_c = 0#
+index_newdata$pinkie_curl_c2 = 0
+plot(1:6,predict.glm(xmdl,newdata=index_newdata,type="response"),type="l",ylim=c(0,1))
+plot(1:9,predict.glm(xmdl,newdata=pinkie_newdata,type="response"),type="l",ylim=c(0,1))
+index_means = predict.glm(xmdl,newdata=index_newdata,type="response")#
+pinkie_means = predict.glm(xmdl,newdata=pinkie_newdata,type="response")#
+#
+## Check how this looks lik:#
+#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+#
+## Get predicted standard errors:#
+#
+index_SE = predict.glm(xmdl,newdata=index_newdata,type="response")#
+pinkie_means = predict.glm(xmdl,newdata=pinkie_newdata,type="response")
+par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))
+quartz("",8,6);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))
+quartz("",9,6);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))
+predict.glm(xmdl,newdata=index_newdata,type="response",se.fit=T)
+index_SE = predict.glm(xmdl,newdata=index_newdata,type="response",se.fit=T)$se.fit#
+pinkie_SE = predict.glm(xmdl,newdata=pinkie_newdata,type="response",se.fit=T)$se.fit
+pinkie_UB = pinkie_means+(1.96*pinkie_SE)#
+pinkie_LB = pinkie_means-(1.96*pinkie_SE)
+index_UB = index_means+(1.96*index_SE)#
+index_LB = index_means-(1.96*index_SE)
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(indx_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0.9,0.6,0.6,0.4))
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))
+points(1:6,xtab.curvature[7:12,]$Proportions,type="b",lwd=3,pch=19)
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0.9,0.6,0.6,0.4))
+points(1:9,xtab.curl[10:18,]$Proportions,type="b",lwd=3,pch=19)
+sort(unique(ju$pinkie_curl_c))
+index_newdata = data.frame(index_curve_c=sort(unique(ju$index_curve_c)))#
+index_newdata$index_curve_c2 = index_newdata$index_curve_c^2#
+index_newdata$pinkie_curl_c = 0.1521036#
+index_newdata$pinkie_curl_c2 = 0.1521036
+sort(unique(ju$pinkie_curl_c2))
+index_newdata = data.frame(index_curve_c=sort(unique(ju$index_curve_c)))#
+index_newdata$index_curve_c2 = index_newdata$index_curve_c^2#
+index_newdata$pinkie_curl_c = 0.1521036#
+index_newdata$pinkie_curl_c2 = 4.63154973
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0.9,0.6,0.6,0.4))
+pinkie_newdata = data.frame(pinkie_curl_c=sort(unique(ju$pinkie_curl_c)))#
+pinkie_newdata$pinkie_curl_c2 = pinkie_newdata$pinkie_curl_c^2#
+pinkie_newdata$index_curve_c = 0#
+pinkie_newdata$index_curve_c2 = 0#
+#
+## Get predictions for index_curve:#
+#
+index_means = predict.glm(xmdl,newdata=index_newdata,type="response")#
+pinkie_means = predict.glm(xmdl,newdata=pinkie_newdata,type="response")#
+#
+## Check how this looks like:#
+#
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+#
+## Get predicted standard errors:#
+#
+index_SE = predict.glm(xmdl,newdata=index_newdata,type="response",se.fit=T)$se.fit#
+pinkie_SE = predict.glm(xmdl,newdata=pinkie_newdata,type="response",se.fit=T)$se.fit#
+#
+## Get upper and lower bounds (confidence intervals):#
+#
+index_UB = index_means+(1.96*index_SE)#
+index_LB = index_means-(1.96*index_SE)#
+pinkie_UB = pinkie_means+(1.96*pinkie_SE)#
+pinkie_LB = pinkie_means-(1.96*pinkie_SE)#
+#
+## Check how the confidence intervals look like:#
+#
+quartz("",9,5);par(mfrow=c(1,2))#
+plot(1:6,index_means,type="l",ylim=c(0,1))#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0.9,0.6,0.6,0.4))#
+plot(1:9,pinkie_means,type="l",ylim=c(0,1))#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0.9,0.6,0.6,0.4))
+sort(unique(ju$index_curve_c))
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0,0,0,0.4))#
+points(1:6,index_means,type="b",lwd=3,pch=19)
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:6,index_means,type="b",lwd=3,pch=19)
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:6,index_means,type="b",lwd=3,pch=19)
+## The plot:#
+#
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:6,index_means,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:6,pinkie_means,type="b",lwd=3,pch=19)
+quartz("",15,6);par(mai=c(1,0.2,1,0.2),omi=c(0.5,1.5,0,0.25),mfrow=c(1,2))#
+# Plot 1, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,6.5),ylim=c(0,1))#
+axis(side=2,seq(0,1,0.25),lwd.ticks=3,lwd=3,las=2,font=2,cex.axis=1.25)#
+axis(side=1,1:6,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("Proportion of\n\"height\" responses",side=2,cex=1.5,line=4.5,font=2)#
+mtext("(a) Index Curve",side=3,cex=2,line=1.5,font=2)#
+mtext("Curvature continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:6,rev(1:6)),c(index_UB,rev(index_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:6,index_means,type="b",lwd=3,pch=19)#
+# Plot 2, Curvature#
+emptyplot(1,1,type="n",xlim=c(0.5,9.5),ylim=c(0,1))#
+axis(side=1,1:9,lwd.ticks=3,lwd=3,font=2,cex.axis=1.25)#
+abline(h=0.5,lwd=2,lty=2)#
+mtext("(b) Pinkie Curl",side=3,cex=2,line=1.5,font=2)#
+mtext("Curl continuum",side=1,cex=1.5,line=3,font=2)#
+box(lwd=3)#
+polygon(c(1:9,rev(1:9)),c(pinkie_UB,rev(pinkie_LB)),col=rgb(0,0,0,0.4),border=F)#
+points(1:9,pinkie_means,type="b",lwd=3,pch=19)
