@@ -3,7 +3,7 @@ Analysis code and data or "Producing and perceiving height and shape gestures"
 
 ### Authors:
 
-- Bodo Winter ( bodowinter.com )
+- Bodo Winter ( www.bodowinter.com )
 - Julius Hassemer ( www.juliushassemer.de )
 
 ### Analysis files:
@@ -16,8 +16,8 @@ Analysis code and data or "Producing and perceiving height and shape gestures"
 
 - photo_study_coding1_TL.csv : photo study data coded by TL
 - photo_study_coding2_JH.csv : photo study data coded by JH
-- web_experiment_raw_data folder : text files each containing data from one participant (Amazon Mechanical Turk)
-- drawing_study_position_JH.xlsx : position data for drawing study (horizontal distance) coded by JH
+- web_experiment_raw_data folder : text files each containing data from one participant (MTurk)
+- drawing_study_position_JH.xlsx : horizontal distance for drawing study coded by JH
 - drawing_study_categorical_coding.csv : categorical data for drawing study (3 coders)
 
 ### Supplementary files:
